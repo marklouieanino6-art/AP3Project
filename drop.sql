@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS harvest, planting, crop, farm, farmer, app_user, role, harvest_remark, quality_grade, planting_status, recommended_season, crop_category, irrigation_type, soil_type CASCADE;

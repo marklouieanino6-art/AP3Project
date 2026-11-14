@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harvests</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-success"><div class="container"><a class="navbar-brand" href="index.html">AgriSys</a><div class="navbar-nav"><a class="nav-link" href="farmers.html">Farmers</a><a class="nav-link" href="farms.html">Farms</a><a class="nav-link" href="crops.html">Crops</a><a class="nav-link" href="plantings.html">Plantings</a><a class="nav-link" href="harvests.html">Harvests</a></div></div></nav>
+<div class="container mt-4">
+<h2>Harvests</h2>
+<form id="form" class="row g-2 mb-3">
+<input class="form-control" id="planting" placeholder="Planting ID" required>
+<input class="form-control" id="quantity" type="number" placeholder="Quantity" required>
+<select class="form-select" id="remark"><option>Good Harvest</option><option>Acceptable Quality</option><option>Low Yield</option><option>Poor Quality</option><option>Damaged Harvest</option></select>
+<button class="btn btn-success" type="submit">Add</button>
+</form>
+<table class="table table-striped"><thead><tr><th>ID</th><th>Planting</th><th>Quantity</th><th>Remark</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table>
+</div>
+<script src="app.js"></script>
+<script>
+const KEY='harvests';
+function render(){ document.getElementById('tbody').innerHTML=getAll(KEY).map(r=>`<tr><td>${r.id}</td><td>${r.planting}</td><td>${r.quantity}</td><td>${r.remark}</td><td><button class="btn btn-sm btn-danger" onclick="del(${r.id})">Delete</button></td></tr>`).join(''); }
+document.getElementById('form').onsubmit=e=>{e.preventDefault(); add(KEY,{planting:planting.value,quantity:quantity.value,remark:remark.value}); render(); e.target.reset();};
+function del(id){ if(confirm('Delete?')){ remove(KEY,id); render(); } }
+render();
+</script></body></html>
