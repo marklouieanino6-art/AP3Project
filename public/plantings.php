@@ -11,10 +11,14 @@ $editing = $editId ? (new Planting($pdo))->find($editId) : null;
 $errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
   if (empty($_POST['farm_id']) || empty($_POST['crop_id'])) $errors[] = 'Farm and crop are required.';
+  if (!is_numeric($_POST['area_planted'] ?? '') || (float)$_POST['area_planted'] <= 0) $errors[] = 'Area planted must be > 0.';
+  if (!is_numeric($_POST['seed_quantity'] ?? '') || (float)$_POST['seed_quantity'] <= 0) $errors[] = 'Seed quantity must be > 0.';
   if (empty($errors)) { (new Planting($pdo))->update((int)$_POST['planting_id'], $_POST); $_SESSION['flash']='Planting updated.'; header('Location: plantings.php'); exit; }
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
   if (empty($_POST['farm_id']) || empty($_POST['crop_id'])) $errors[] = 'Farm and crop are required.';
+  if (!is_numeric($_POST['area_planted'] ?? '') || (float)$_POST['area_planted'] <= 0) $errors[] = 'Area planted must be > 0.';
+  if (!is_numeric($_POST['seed_quantity'] ?? '') || (float)$_POST['seed_quantity'] <= 0) $errors[] = 'Seed quantity must be > 0.';
   if (empty($errors)) {
     $pdo->prepare('INSERT INTO planting (farm_id,crop_id,planting_date,area_planted,seed_quantity,expected_harvest_date,status_id) VALUES (?,?,?,?,?,?,?)')->execute([$_POST['farm_id'],$_POST['crop_id'],$_POST['planting_date'],$_POST['area_planted'],$_POST['seed_quantity'],$_POST['expected_harvest_date'],$_POST['status_id']]);
     $_SESSION['flash']='Planting created successfully.';

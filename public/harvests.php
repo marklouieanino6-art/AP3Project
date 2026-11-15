@@ -12,11 +12,13 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
   if (empty($_POST['planting_id'])) $errors[] = 'Planting is required.';
   if (!is_numeric($_POST['quantity_kg'] ?? '') || (float)$_POST['quantity_kg'] <= 0) $errors[] = 'Quantity must be > 0.';
+  if (!is_numeric($_POST['selling_price_per_kg'] ?? '') || (float)$_POST['selling_price_per_kg'] < 0) $errors[] = 'Price must be >= 0.';
   if (empty($errors)) { (new Harvest($pdo))->update((int)$_POST['harvest_id'], $_POST); $_SESSION['flash']='Harvest updated.'; header('Location: harvests.php'); exit; }
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
   if (empty($_POST['planting_id'])) $errors[] = 'Planting is required.';
   if (!is_numeric($_POST['quantity_kg'] ?? '') || (float)$_POST['quantity_kg'] <= 0) $errors[] = 'Quantity must be > 0.';
+  if (!is_numeric($_POST['selling_price_per_kg'] ?? '') || (float)$_POST['selling_price_per_kg'] < 0) $errors[] = 'Price must be >= 0.';
   if (empty($errors)) {
     $pdo->prepare('INSERT INTO harvest (planting_id,harvest_date,quantity_kg,selling_price_per_kg,quality_grade_id,remark_id) VALUES (?,?,?,?,?,?)')->execute([$_POST['planting_id'],$_POST['harvest_date'],$_POST['quantity_kg'],$_POST['selling_price_per_kg'],$_POST['quality_grade_id'],$_POST['remark_id']]);
     $_SESSION['flash']='Harvest created successfully.';
