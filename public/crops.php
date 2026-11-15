@@ -68,8 +68,8 @@ $cats=$pdo->query('SELECT * FROM crop_category')->fetchAll(PDO::FETCH_ASSOC);
 <select class="form-select col" name="recommended_season_id"><?php foreach($seasons as $s): ?><option value="<?=$s['recommended_season_id']?>"><?=htmlspecialchars($s['description'])?></option><?php endforeach; ?></select>
 <button class="btn btn-primary">Add</button>
 </form>
-<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Variety</th><th>Category</th><th>Season</th><th>Actions</th></tr></thead><tbody>
-<?php foreach($rows as $r): ?><tr><td><?=$r['crop_id']?></td><td><?=htmlspecialchars($r['crop_name'])?></td><td><?=htmlspecialchars($r['variety'])?></td><td><?=htmlspecialchars($r['cat'])?></td><td><?=htmlspecialchars($r['season'])?></td><td><a class="btn btn-sm btn-primary" href="?edit=<?=$r['crop_id']?>">Edit</a><?php if($isAdmin): ?> <a class="btn btn-sm btn-danger" href="?delete=<?=$r['crop_id']?>" onclick="return confirm('Delete?')">Delete</a><?php endif; ?></td></tr><?php endforeach; ?>
+<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Name</th><th>Variety</th><th>Category</th><th>Season</th><th>Growing days</th><th>Actions</th></tr></thead><tbody>
+<?php foreach($rows as $r): ?><tr><td><?=$r['crop_id']?></td><td><?=htmlspecialchars($r['crop_name'])?></td><td><?=htmlspecialchars($r['variety'])?></td><td><?=htmlspecialchars($r['cat'])?></td><td><?=htmlspecialchars($r['season'])?></td><td><?=$r['growing_period_days']?></td><td><a class="btn btn-sm btn-primary" href="?edit=<?=$r['crop_id']?>">Edit</a><?php if($isAdmin): ?> <a class="btn btn-sm btn-danger" href="?delete=<?=$r['crop_id']?>" onclick="return confirm('Delete?')">Delete</a><?php endif; ?></td></tr><?php endforeach; ?>
 </tbody></table></div>
 <a href="index.php" class="btn btn-secondary">Back</a>
 </div></body></html>
