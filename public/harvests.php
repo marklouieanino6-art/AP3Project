@@ -5,18 +5,23 @@ if (isset($_GET['delete']) && $isAdmin) {
   try { $pdo->prepare('DELETE FROM harvest WHERE harvest_id=?')->execute([$_GET['delete']]); $_SESSION['flash']='Harvest deleted.'; } catch(Exception $e) { $_SESSION['flash']='Cannot delete: '.$e->getMessage(); }
   header('Location: harvests.php'); exit;
 }
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-  $st=$pdo->prepare('INSERT INTO harvest (planting_id,harvest_date,quantity_kg,selling_price_per_kg,quality_grade_id,remark_id) VALUES (?,?,?,?,?,?)');
-  $st->execute([$_POST['planting_id'],$_POST['harvest_date'],$_POST['quantity_kg'],$_POST['selling_price_per_kg'],$_POST['quality_grade_id'],$_POST['remark_id']]);
-  $_SESSION['flash']='Harvest created successfully.';
-  header('Location: harvests.php'); exit;
-}
+
 $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $editing = $editId ? (new Harvest($pdo))->find($editId) : null;
+$errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
-  (new Harvest($pdo))->update((int)$_POST['harvest_id'], $_POST);
-  $_SESSION['flash']='Harvest updated.';
-  header('Location: harvests.php'); exit;
+  if (empty($_POST['planting_id'])) $errors[] = 'Planting is required.';
+  if (!is_numeric($_POST['quantity_kg'] ?? '') || (float)$_POST['quantity_kg'] <= 0) $errors[] = 'Quantity must be > 0.';
+  if (empty($errors)) { (new Harvest($pdo))->update((int)$_POST['harvest_id'], $_POST); $_SESSION['flash']='Harvest updated.'; header('Location: harvests.php'); exit; }
+}
+if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
+  if (empty($_POST['planting_id'])) $errors[] = 'Planting is required.';
+  if (!is_numeric($_POST['quantity_kg'] ?? '') || (float)$_POST['quantity_kg'] <= 0) $errors[] = 'Quantity must be > 0.';
+  if (empty($errors)) {
+    $pdo->prepare('INSERT INTO harvest (planting_id,harvest_date,quantity_kg,selling_price_per_kg,quality_grade_id,remark_id) VALUES (?,?,?,?,?,?)')->execute([$_POST['planting_id'],$_POST['harvest_date'],$_POST['quantity_kg'],$_POST['selling_price_per_kg'],$_POST['quality_grade_id'],$_POST['remark_id']]);
+    $_SESSION['flash']='Harvest created successfully.';
+    header('Location: harvests.php'); exit;
+  }
 }
 $plantings=$pdo->query('SELECT planting_id FROM planting ORDER BY planting_id')->fetchAll(PDO::FETCH_ASSOC);
 $grades=$pdo->query('SELECT * FROM quality_grade')->fetchAll(PDO::FETCH_ASSOC);
@@ -37,6 +42,7 @@ $grades=$pdo->query('SELECT * FROM quality_grade')->fetchAll(PDO::FETCH_ASSOC);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body><div class="container mt-4">
 <h2>Harvests</h2>
+<?php if(!empty($errors)): ?><div class="alert alert-danger"><ul><?php foreach($errors as $e): ?><li><?=htmlspecialchars($e)?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!empty($_SESSION['flash'])): ?><div class="alert alert-info"><?=htmlspecialchars($_SESSION['flash'])?></div><?php unset($_SESSION['flash']); endif; ?>
 <form method="get" class="row g-2 mb-3">
 <input class="form-control col" name="q" placeholder="Search" value="<?=htmlspecialchars($search ?? '')?>">

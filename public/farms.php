@@ -5,18 +5,23 @@ if (isset($_GET['delete']) && $isAdmin) {
   try { $pdo->prepare('DELETE FROM farm WHERE farm_id=?')->execute([$_GET['delete']]); $_SESSION['flash']='Farm deleted.'; } catch(Exception $e) { $_SESSION['flash']='Cannot delete: '.$e->getMessage(); }
   header('Location: farms.php'); exit;
 }
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-  $st=$pdo->prepare('INSERT INTO farm (farmer_id,farm_name,location,area_hectares,soil_type_id,irrigation_type_id) VALUES (?,?,?,?,?,?)');
-  $st->execute([$_POST['farmer_id'],$_POST['farm_name'],$_POST['location'],$_POST['area_hectares'],$_POST['soil_type_id'],$_POST['irrigation_type_id']]);
-  $_SESSION['flash']='Farm created successfully.';
-  header('Location: farms.php'); exit;
-}
+
 $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $editing = $editId ? (new Farm($pdo))->find($editId) : null;
+$errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
-  (new Farm($pdo))->update((int)$_POST['farm_id'], $_POST);
-  $_SESSION['flash']='Farm updated.';
-  header('Location: farms.php'); exit;
+  if (trim($_POST['farm_name'] ?? '') === '') $errors[] = 'Farm name is required.';
+  if (!is_numeric($_POST['area_hectares'] ?? '') || (float)$_POST['area_hectares'] <= 0) $errors[] = 'Area must be > 0.';
+  if (empty($errors)) { (new Farm($pdo))->update((int)$_POST['farm_id'], $_POST); $_SESSION['flash']='Farm updated.'; header('Location: farms.php'); exit; }
+}
+if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
+  if (trim($_POST['farm_name'] ?? '') === '') $errors[] = 'Farm name is required.';
+  if (!is_numeric($_POST['area_hectares'] ?? '') || (float)$_POST['area_hectares'] <= 0) $errors[] = 'Area must be > 0.';
+  if (empty($errors)) {
+    $pdo->prepare('INSERT INTO farm (farmer_id,farm_name,location,area_hectares,soil_type_id,irrigation_type_id) VALUES (?,?,?,?,?,?)')->execute([$_POST['farmer_id'],$_POST['farm_name'],$_POST['location'],$_POST['area_hectares'],$_POST['soil_type_id'],$_POST['irrigation_type_id']]);
+    $_SESSION['flash']='Farm created successfully.';
+    header('Location: farms.php'); exit;
+  }
 }
 $farmers=$pdo->query('SELECT farmer_id, first_name, last_name FROM farmer ORDER BY farmer_id')->fetchAll(PDO::FETCH_ASSOC);
 $soils=$pdo->query('SELECT * FROM soil_type')->fetchAll(PDO::FETCH_ASSOC);
@@ -39,6 +44,7 @@ $irrs=$pdo->query('SELECT * FROM irrigation_type')->fetchAll(PDO::FETCH_ASSOC);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body><div class="container mt-4">
 <h2>Farms</h2>
+<?php if(!empty($errors)): ?><div class="alert alert-danger"><ul><?php foreach($errors as $e): ?><li><?=htmlspecialchars($e)?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!empty($_SESSION['flash'])): ?><div class="alert alert-info"><?=htmlspecialchars($_SESSION['flash'])?></div><?php unset($_SESSION['flash']); endif; ?>
 <form method="get" class="row g-2 mb-3">
 <input class="form-control col" name="q" placeholder="Search" value="<?=htmlspecialchars($search ?? '')?>">

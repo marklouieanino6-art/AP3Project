@@ -5,18 +5,21 @@ if (isset($_GET['delete']) && $isAdmin) {
   try { $pdo->prepare('DELETE FROM crop WHERE crop_id=?')->execute([$_GET['delete']]); $_SESSION['flash']='Crop deleted.'; } catch(Exception $e) { $_SESSION['flash']='Cannot delete: '.$e->getMessage(); }
   header('Location: crops.php'); exit;
 }
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-  $st=$pdo->prepare('INSERT INTO crop (crop_name,variety,crop_category_id,growing_period_days,recommended_season_id) VALUES (?,?,?,?,?)');
-  $st->execute([$_POST['crop_name'],$_POST['variety'],$_POST['crop_category_id'],$_POST['growing_period_days'],$_POST['recommended_season_id']]);
-  $_SESSION['flash']='Crop created successfully.';
-  header('Location: crops.php'); exit;
-}
+
 $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $editing = $editId ? (new Crop($pdo))->find($editId) : null;
+$errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
-  (new Crop($pdo))->update((int)$_POST['crop_id'], $_POST);
-  $_SESSION['flash']='Crop updated.';
-  header('Location: crops.php'); exit;
+  if (trim($_POST['crop_name'] ?? '') === '') $errors[] = 'Crop name is required.';
+  if (empty($errors)) { (new Crop($pdo))->update((int)$_POST['crop_id'], $_POST); $_SESSION['flash']='Crop updated.'; header('Location: crops.php'); exit; }
+}
+if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
+  if (trim($_POST['crop_name'] ?? '') === '') $errors[] = 'Crop name is required.';
+  if (empty($errors)) {
+    $pdo->prepare('INSERT INTO crop (crop_name,variety,crop_category_id,growing_period_days,recommended_season_id) VALUES (?,?,?,?,?)')->execute([$_POST['crop_name'],$_POST['variety'],$_POST['crop_category_id'],$_POST['growing_period_days'],$_POST['recommended_season_id']]);
+    $_SESSION['flash']='Crop created successfully.';
+    header('Location: crops.php'); exit;
+  }
 }
 $cats=$pdo->query('SELECT * FROM crop_category')->fetchAll(PDO::FETCH_ASSOC);
 $seasons=$pdo->query('SELECT * FROM recommended_season')->fetchAll(PDO::FETCH_ASSOC);
@@ -38,6 +41,7 @@ $cats=$pdo->query('SELECT * FROM crop_category')->fetchAll(PDO::FETCH_ASSOC);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body><div class="container mt-4">
 <h2>Crops</h2>
+<?php if(!empty($errors)): ?><div class="alert alert-danger"><ul><?php foreach($errors as $e): ?><li><?=htmlspecialchars($e)?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!empty($_SESSION['flash'])): ?><div class="alert alert-info"><?=htmlspecialchars($_SESSION['flash'])?></div><?php unset($_SESSION['flash']); endif; ?>
 <form method="get" class="row g-2 mb-3">
 <input class="form-control col" name="q" placeholder="Search" value="<?=htmlspecialchars($search ?? '')?>">

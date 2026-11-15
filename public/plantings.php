@@ -5,18 +5,21 @@ if (isset($_GET['delete']) && $isAdmin) {
   try { $pdo->prepare('DELETE FROM planting WHERE planting_id=?')->execute([$_GET['delete']]); $_SESSION['flash']='Planting deleted.'; } catch(Exception $e) { $_SESSION['flash']='Cannot delete: '.$e->getMessage(); }
   header('Location: plantings.php'); exit;
 }
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-  $st=$pdo->prepare('INSERT INTO planting (farm_id,crop_id,planting_date,area_planted,seed_quantity,expected_harvest_date,status_id) VALUES (?,?,?,?,?,?,?)');
-  $st->execute([$_POST['farm_id'],$_POST['crop_id'],$_POST['planting_date'],$_POST['area_planted'],$_POST['seed_quantity'],$_POST['expected_harvest_date'],$_POST['status_id']]);
-  $_SESSION['flash']='Planting created successfully.';
-  header('Location: plantings.php'); exit;
-}
+
 $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $editing = $editId ? (new Planting($pdo))->find($editId) : null;
+$errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
-  (new Planting($pdo))->update((int)$_POST['planting_id'], $_POST);
-  $_SESSION['flash']='Planting updated.';
-  header('Location: plantings.php'); exit;
+  if (empty($_POST['farm_id']) || empty($_POST['crop_id'])) $errors[] = 'Farm and crop are required.';
+  if (empty($errors)) { (new Planting($pdo))->update((int)$_POST['planting_id'], $_POST); $_SESSION['flash']='Planting updated.'; header('Location: plantings.php'); exit; }
+}
+if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
+  if (empty($_POST['farm_id']) || empty($_POST['crop_id'])) $errors[] = 'Farm and crop are required.';
+  if (empty($errors)) {
+    $pdo->prepare('INSERT INTO planting (farm_id,crop_id,planting_date,area_planted,seed_quantity,expected_harvest_date,status_id) VALUES (?,?,?,?,?,?,?)')->execute([$_POST['farm_id'],$_POST['crop_id'],$_POST['planting_date'],$_POST['area_planted'],$_POST['seed_quantity'],$_POST['expected_harvest_date'],$_POST['status_id']]);
+    $_SESSION['flash']='Planting created successfully.';
+    header('Location: plantings.php'); exit;
+  }
 }
 $farms=$pdo->query('SELECT farm_id, farm_name FROM farm ORDER BY farm_id')->fetchAll(PDO::FETCH_ASSOC);
 $crops=$pdo->query('SELECT crop_id, crop_name FROM crop ORDER BY crop_id')->fetchAll(PDO::FETCH_ASSOC);
@@ -37,6 +40,7 @@ $statuses=$pdo->query('SELECT * FROM planting_status')->fetchAll(PDO::FETCH_ASSO
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body><div class="container mt-4">
 <h2>Plantings</h2>
+<?php if(!empty($errors)): ?><div class="alert alert-danger"><ul><?php foreach($errors as $e): ?><li><?=htmlspecialchars($e)?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!empty($_SESSION['flash'])): ?><div class="alert alert-info"><?=htmlspecialchars($_SESSION['flash'])?></div><?php unset($_SESSION['flash']); endif; ?>
 <form method="get" class="row g-2 mb-3">
 <input class="form-control col" name="q" placeholder="Search" value="<?=htmlspecialchars($search ?? '')?>">

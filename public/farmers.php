@@ -8,17 +8,26 @@ if (isset($_GET['delete']) && $isAdmin) {
 // Edit
 $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $editing = $editId ? (new Farmer($pdo))->find($editId) : null;
+$errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
-  (new Farmer($pdo))->update((int)$_POST['farmer_id'], $_POST);
-  $_SESSION['flash']='Farmer updated.';
-  header('Location: farmers.php'); exit;
+  if (trim($_POST['first_name'] ?? '') === '') $errors[] = 'First name is required.';
+  if (trim($_POST['last_name'] ?? '') === '') $errors[] = 'Last name is required.';
+  if (empty($errors)) {
+    (new Farmer($pdo))->update((int)$_POST['farmer_id'], $_POST);
+    $_SESSION['flash']='Farmer updated.';
+    header('Location: farmers.php'); exit;
+  }
 }
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-  $st=$pdo->prepare('INSERT INTO farmer (first_name,last_name,contact_number,address,date_registered) VALUES (?,?,?,?,CURRENT_DATE)');
-  $st->execute([$_POST['first_name'],$_POST['last_name'],$_POST['contact_number'],$_POST['address']]);
-  $_SESSION['flash']='Farmer created successfully.';
-  header('Location: farmers.php'); exit;
+if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
+  if (trim($_POST['first_name'] ?? '') === '') $errors[] = 'First name is required.';
+  if (trim($_POST['last_name'] ?? '') === '') $errors[] = 'Last name is required.';
+  if (empty($errors)) {
+    (new Farmer($pdo))->create($_POST);
+    $_SESSION['flash']='Farmer created.';
+    header('Location: farmers.php'); exit;
+  }
 }
+
 $search = trim($_GET['q'] ?? '');
 $addrFilter = trim($_GET['address'] ?? '');
 $sort = in_array($_GET['sort'] ?? '', ['first_name','last_name','address']) ? $_GET['sort'] : 'farmer_id';
@@ -37,6 +46,7 @@ $addresses=$pdo->query('SELECT DISTINCT address FROM farmer ORDER BY address')->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head>
 <body><div class="container mt-4">
 <h2>Farmers</h2>
+<?php if(!empty($errors)): ?><div class="alert alert-danger"><ul><?php foreach($errors as $e): ?><li><?=htmlspecialchars($e)?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!empty($_SESSION['flash'])): ?><div class="alert alert-info"><?=htmlspecialchars($_SESSION['flash'])?></div><?php unset($_SESSION['flash']); endif; ?>
 <form method="get" class="row g-2 mb-3">
 <input class="form-control col" name="q" placeholder="Search name/address" value="<?=htmlspecialchars($search ?? '')?>">
