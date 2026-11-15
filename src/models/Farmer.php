@@ -1,7 +1,7 @@
 <?php
 class Farmer {
-    private Database $db;
-    public function __construct(Database $db) { $this->db = $db; }
+    private PDO $db;
+    public function __construct(PDO $db) { $this->db = $db; }
     public function all(array $filters = [], array $options = []): array {
         return $this->db->select('farmer', '*', $filters, $options);
     }
