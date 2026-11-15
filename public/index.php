@@ -21,6 +21,7 @@ $totalHarv=$pdo->query("SELECT COALESCE(SUM(quantity_kg),0) FROM harvest")->fetc
 <a class="nav-link" href="plantings.php">Plantings</a>
 <a class="nav-link" href="harvests.php">Harvests</a>
 <a class="nav-link" href="reports.php">Reports</a>
+<?php if(($_SESSION['user']['role_id'] ?? 0)==1): ?><a class="nav-link" href="users.php">Users</a><?php endif; ?>
 <a class="nav-link" href="logout.php">Logout (<?=htmlspecialchars($u['username'])?>)</a>
 </div></div></nav>
 <div class="container mt-4">
