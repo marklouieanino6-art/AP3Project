@@ -11,11 +11,13 @@ $editing = $editId ? (new Crop($pdo))->find($editId) : null;
 $errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
   if (trim($_POST['crop_name'] ?? '') === '') $errors[] = 'Crop name is required.';
+  elseif (!preg_match('/[A-Za-z]/', $_POST['crop_name'])) $errors[] = 'Crop name must contain letters.';
   if (trim($_POST['growing_period_days'] ?? '') !== '' && (!is_numeric($_POST['growing_period_days']) || (int)$_POST['growing_period_days'] <= 0)) $errors[] = 'Growing days must be > 0.';
   if (empty($errors)) { (new Crop($pdo))->update((int)$_POST['crop_id'], $_POST); $_SESSION['flash']='Crop updated.'; header('Location: crops.php'); exit; }
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
   if (trim($_POST['crop_name'] ?? '') === '') $errors[] = 'Crop name is required.';
+  elseif (!preg_match('/[A-Za-z]/', $_POST['crop_name'])) $errors[] = 'Crop name must contain letters.';
   if (trim($_POST['growing_period_days'] ?? '') !== '' && (!is_numeric($_POST['growing_period_days']) || (int)$_POST['growing_period_days'] <= 0)) $errors[] = 'Growing days must be > 0.';
   if (empty($errors)) {
     $pdo->prepare('INSERT INTO crop (crop_name,variety,crop_category_id,growing_period_days,recommended_season_id) VALUES (?,?,?,?,?)')->execute([$_POST['crop_name'],$_POST['variety'],$_POST['crop_category_id'],$_POST['growing_period_days'],$_POST['recommended_season_id']]);

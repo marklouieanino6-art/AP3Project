@@ -11,11 +11,13 @@ $editing = $editId ? (new Farm($pdo))->find($editId) : null;
 $errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
   if (trim($_POST['farm_name'] ?? '') === '') $errors[] = 'Farm name is required.';
+  elseif (!preg_match('/[A-Za-z]/', $_POST['farm_name'])) $errors[] = 'Farm name must contain letters.';
   if (!is_numeric($_POST['area_hectares'] ?? '') || (float)$_POST['area_hectares'] <= 0) $errors[] = 'Area must be > 0.';
   if (empty($errors)) { (new Farm($pdo))->update((int)$_POST['farm_id'], $_POST); $_SESSION['flash']='Farm updated.'; header('Location: farms.php'); exit; }
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
   if (trim($_POST['farm_name'] ?? '') === '') $errors[] = 'Farm name is required.';
+  elseif (!preg_match('/[A-Za-z]/', $_POST['farm_name'])) $errors[] = 'Farm name must contain letters.';
   if (!is_numeric($_POST['area_hectares'] ?? '') || (float)$_POST['area_hectares'] <= 0) $errors[] = 'Area must be > 0.';
   if (empty($errors)) {
     $pdo->prepare('INSERT INTO farm (farmer_id,farm_name,location,area_hectares,soil_type_id,irrigation_type_id) VALUES (?,?,?,?,?,?)')->execute([$_POST['farmer_id'],$_POST['farm_name'],$_POST['location'],$_POST['area_hectares'],$_POST['soil_type_id'],$_POST['irrigation_type_id']]);
