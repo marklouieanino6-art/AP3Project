@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
     header('Location: harvests.php'); exit;
   }
 }
-$plantings=$pdo->query('SELECT planting_id FROM planting ORDER BY planting_id')->fetchAll(PDO::FETCH_ASSOC);
+$plantings=$pdo->query('SELECT p.planting_id, f.farm_name, c.crop_name FROM planting p JOIN farm f ON f.farm_id=p.farm_id JOIN crop c ON c.crop_id=p.crop_id ORDER BY p.planting_id')->fetchAll(PDO::FETCH_ASSOC);
 $grades=$pdo->query('SELECT * FROM quality_grade')->fetchAll(PDO::FETCH_ASSOC);
 $remarks=$pdo->query('SELECT * FROM harvest_remark')->fetchAll(PDO::FETCH_ASSOC);
 $search = trim($_GET['q'] ?? '');
@@ -58,7 +58,7 @@ $grades=$pdo->query('SELECT * FROM quality_grade')->fetchAll(PDO::FETCH_ASSOC);
 <form method="post" class="row g-2 mb-3">
 <input type="hidden" name="update" value="1">
 <input type="hidden" name="harvest_id" value="<?=$editing['harvest_id']?>">
-<select class="form-select col" name="planting_id"><?php foreach($plantings as $p): ?><option value="<?=$p['planting_id']?>" <?=($editing['planting_id']==$p['planting_id']?'selected':'')?>>Planting <?=$p['planting_id']?></option><?php endforeach; ?></select>
+<select class="form-select col" name="planting_id"><?php foreach($plantings as $p): ?><option value="<?=$p['planting_id']?>" <?=($editing['planting_id']==$p['planting_id']?'selected':'')?>><?=$p['planting_id']?> - <?=htmlspecialchars($p['farm_name'])?> / <?=htmlspecialchars($p['crop_name'])?></option><?php endforeach; ?></select>
 <input class="form-control col" type="date" name="harvest_date" value="<?=$editing['harvest_date']?>" required>
 <input class="form-control col" type="number" step="0.01" name="quantity_kg" value="<?=$editing['quantity_kg']?>" required>
 <input class="form-control col" type="number" step="0.01" name="selling_price_per_kg" value="<?=$editing['selling_price_per_kg']?>" required>
@@ -69,7 +69,7 @@ $grades=$pdo->query('SELECT * FROM quality_grade')->fetchAll(PDO::FETCH_ASSOC);
 </form>
 <?php endif; ?>
 <form method="post" class="row g-2 mb-3">
-<select class="form-select col" name="planting_id" required><?php foreach($plantings as $p): ?><option value="<?=$p['planting_id']?>">Planting <?=$p['planting_id']?></option><?php endforeach; ?></select>
+<select class="form-select col" name="planting_id" required><?php foreach($plantings as $p): ?><option value="<?=$p['planting_id']?>"><?=$p['planting_id']?> - <?=htmlspecialchars($p['farm_name'])?> / <?=htmlspecialchars($p['crop_name'])?></option><?php endforeach; ?></select>
 <input class="form-control col" type="date" name="harvest_date" required>
 <input class="form-control col" type="number" step="0.01" name="quantity_kg" placeholder="Qty kg" required>
 <input class="form-control col" type="number" step="0.01" name="selling_price_per_kg" placeholder="Price/kg" required>
