@@ -1,13 +1,28 @@
-# Normalization
+# Database Normalization
 
 ## Unnormalized Form (UNF)
-One flat table containing farmer, farm, crop, planting, and harvest data with repeating groups (multiple farms per farmer, multiple plantings per farm, multiple harvests per planting).
+One flat table with repeating groups.
+
+| farmer_name | farm_name | crop_name | planting_date | harvest_date | qty |
+|---|---|---|---|---|---|
+| Juan | Farm1 | Rice | 2025-11-01 | 2026-02-25 | 900 |
 
 ## 1NF
-Remove repeating groups; each field atomic. Create separate rows for each farm, planting, harvest.
+Atomic values; one row per fact.
+
+| farmer_name | farm_name | crop_name | planting_date |
+|---|---|---|---|
+| Juan | Farm1 | Rice | 2025-11-01 |
 
 ## 2NF
-Remove partial dependencies: farm depends on farmer; planting depends on farm+crop; harvest depends on planting. Move to separate tables with PKs.
+Split by dependency.
+
+**farmer**: farmer_id, name
+**farm**: farm_id, farmer_id, name
+**planting**: planting_id, farm_id, crop_id, date
 
 ## 3NF
-Remove transitive dependencies: lookup tables (soil_type, irrigation_type, crop_category, recommended_season, planting_status, quality_grade, harvest_remark, role) store descriptions; core tables store FK ids.
+Lookup tables for descriptions.
+
+**crop**: crop_id, crop_name, crop_category_id (FK)
+**planting_status**: status_id, description
