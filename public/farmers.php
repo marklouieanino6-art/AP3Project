@@ -11,7 +11,10 @@ $editing = $editId ? (new Farmer($pdo))->find($editId) : null;
 $errors = [];
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
   if (trim($_POST['first_name'] ?? '') === '') $errors[] = 'First name is required.';
+  elseif (!preg_match('/^[A-Za-z ]+$/', $_POST['first_name'])) $errors[] = 'First name must contain letters only.';
   if (trim($_POST['last_name'] ?? '') === '') $errors[] = 'Last name is required.';
+  elseif (!preg_match('/^[A-Za-z ]+$/', $_POST['last_name'])) $errors[] = 'Last name must contain letters only.';
+  if (trim($_POST['contact_number'] ?? '') !== '' && !preg_match('/^[0-9]+$/', $_POST['contact_number'])) $errors[] = 'Contact number must be numeric.';
   if (empty($errors)) {
     (new Farmer($pdo))->update((int)$_POST['farmer_id'], $_POST);
     $_SESSION['flash']='Farmer updated.';
@@ -20,7 +23,10 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update'])) {
 }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !isset($_POST['update'])) {
   if (trim($_POST['first_name'] ?? '') === '') $errors[] = 'First name is required.';
+  elseif (!preg_match('/^[A-Za-z ]+$/', $_POST['first_name'])) $errors[] = 'First name must contain letters only.';
   if (trim($_POST['last_name'] ?? '') === '') $errors[] = 'Last name is required.';
+  elseif (!preg_match('/^[A-Za-z ]+$/', $_POST['last_name'])) $errors[] = 'Last name must contain letters only.';
+  if (trim($_POST['contact_number'] ?? '') !== '' && !preg_match('/^[0-9]+$/', $_POST['contact_number'])) $errors[] = 'Contact number must be numeric.';
   if (empty($errors)) {
     (new Farmer($pdo))->create($_POST);
     $_SESSION['flash']='Farmer created.';
