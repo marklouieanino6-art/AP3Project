@@ -32,6 +32,7 @@ $search = trim($_GET['q'] ?? '');
 $irrFilter = trim($_GET['irrigation'] ?? '');
 $sort = in_array($_GET['sort'] ?? '', ['farm_name','location','area_hectares']) ? $_GET['sort'] : 'farm_id';
 $dir = (($_GET['dir'] ?? '') === 'desc') ? 'DESC' : 'ASC';
+$dir = (($_GET['dir'] ?? '') === 'desc') ? 'DESC' : 'ASC';
 $sql = 'SELECT f.*, fr.first_name, fr.last_name, it.description AS irr FROM farm f JOIN farmer fr ON fr.farmer_id=f.farmer_id LEFT JOIN irrigation_type it ON it.irrigation_type_id=f.irrigation_type_id WHERE 1=1';
 $params=[];
 if ($search !== '') { $sql .= " AND (f.farm_name ILIKE ? OR f.location ILIKE ? OR fr.first_name ILIKE ? OR fr.last_name ILIKE ?)"; $like='%'.$search.'%'; array_push($params,$like,$like,$like,$like); }
@@ -79,7 +80,7 @@ $irrs=$pdo->query('SELECT * FROM irrigation_type')->fetchAll(PDO::FETCH_ASSOC);
 <select class="form-select col" name="irrigation_type_id"><?php foreach($irrs as $i): ?><option value="<?=$i['irrigation_type_id']?>"><?=htmlspecialchars($i['description'])?></option><?php endforeach; ?></select>
 <button class="btn btn-primary">Add</button>
 </form>
-<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Farmer</th><th>Name</th><th>Location</th><th>Area</th><th>Actions</th></tr></thead><tbody>
+<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Farmer</th><th><a href="?sort=farm_name&dir=asc">Name</a></th><th><a href="?sort=location&dir=asc">Location</a></th><th><a href="?sort=area_hectares&dir=asc">Area</a></th><th>Actions</th></tr></thead><tbody>
 <?php foreach($rows as $r): ?><tr><td><?=$r['farm_id']?></td><td><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></td><td><?=htmlspecialchars($r['farm_name'])?></td><td><?=htmlspecialchars($r['location'])?></td><td><?=$r['area_hectares']?></td><td><a class="btn btn-sm btn-primary" href="?edit=<?=$r['farm_id']?>">Edit</a><?php if($isAdmin): ?> <a class="btn btn-sm btn-danger" href="?delete=<?=$r['farm_id']?>" onclick="return confirm('Delete?')">Delete</a><?php endif; ?></td></tr><?php endforeach; ?>
 </tbody></table></div>
 <a href="index.php" class="btn btn-secondary">Back</a>

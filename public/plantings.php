@@ -34,7 +34,9 @@ $sql = "SELECT p.*, f.farm_name, c.crop_name, ps.description AS status FROM plan
 $params=[];
 if ($search !== '') { $sql .= " AND (f.farm_name ILIKE ? OR c.crop_name ILIKE ? OR ps.description ILIKE ?)"; $like='%'.$search.'%'; array_push($params,$like,$like,$like); }
 if ($statusFilter !== '') { $sql .= " AND p.status_id = ?"; $params[] = $statusFilter; }
-$sql .= " ORDER BY p.planting_id";
+$sort = in_array($_GET['sort'] ?? '', ['planting_date','status']) ? $_GET['sort'] : 'planting_id';
+$dir = (($_GET['dir'] ?? '') === 'desc') ? 'DESC' : 'ASC';
+if ($sort === 'status') { $sql .= " ORDER BY ps.description $dir"; } else { $sql .= " ORDER BY p.$sort $dir"; }
 $st=$pdo->prepare($sql);
 $st->execute($params);
 $rows=$st->fetchAll(PDO::FETCH_ASSOC);
@@ -79,7 +81,7 @@ $statuses=$pdo->query('SELECT * FROM planting_status')->fetchAll(PDO::FETCH_ASSO
 <select class="form-select col" name="status_id"><?php foreach($statuses as $s): ?><option value="<?=$s['status_id']?>"><?=htmlspecialchars($s['description'])?></option><?php endforeach; ?></select>
 <button class="btn btn-primary">Add</button>
 </form>
-<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Farm</th><th>Crop</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+<div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Farm</th><th>Crop</th><th><a href="?sort=planting_date&dir=asc">Date</a></th><th><a href="?sort=status&dir=asc">Status</a></th><th>Actions</th></tr></thead><tbody>
 <?php foreach($rows as $r): ?><tr><td><?=$r['planting_id']?></td><td><?=htmlspecialchars($r['farm_name'])?></td><td><?=htmlspecialchars($r['crop_name'])?></td><td><?=$r['planting_date']?></td><td><?=htmlspecialchars($r['status'])?></td><td><a class="btn btn-sm btn-primary" href="?edit=<?=$r['planting_id']?>">Edit</a><?php if($isAdmin): ?> <a class="btn btn-sm btn-danger" href="?delete=<?=$r['planting_id']?>" onclick="return confirm('Delete?')">Delete</a><?php endif; ?></td></tr><?php endforeach; ?>
 </tbody></table></div>
 <a href="index.php" class="btn btn-secondary">Back</a>
